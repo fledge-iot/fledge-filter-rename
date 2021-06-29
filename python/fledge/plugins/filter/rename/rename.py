@@ -145,6 +145,7 @@ def plugin_ingest(handle, data):
     for element in data:
         processed_data = find_and_replace(handle['operation']['value'], handle['find']['value'],
                                           handle['replaceWith']['value'], element)
+    _LOGGER.debug("processed data {}".format([processed_data]))
     # Pass data onwards
     filter_ingest.filter_ingest_callback(the_callback, the_ingest_ref, [processed_data])
 
@@ -168,7 +169,7 @@ def find_and_replace(operation, find, replace_with, reading):
         new_dict['asset'] = re.sub(search_pattern, replace_with, new_dict['asset'], flags=re.IGNORECASE)
     elif operation == 'datapoint':
         dp = re.sub(search_pattern, replace_with, str(new_dict['readings']), flags=re.IGNORECASE)
-        new_dict = eval(dp)
+        new_dict['readings'] = eval(dp)
     elif operation == 'both':
         # Both asset and datapoint case
         both = re.sub(search_pattern, replace_with, str(reading), flags=re.IGNORECASE)

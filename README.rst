@@ -7,25 +7,26 @@ It is a filter plugin for Fledge which can be used to modify the name of asset, 
 Configuration options
 ======================
 
-*  'operation': type: enumeration default: 'asset'
+*  config item: 'operation', type: 'enumeration', default: 'asset'
     Search and replace operation be performed on asset name, datapoint name and both
-*  'find': type: string default: 'assetName'
+*  config item: 'find', type: 'string', default: 'assetName'
     A regular expression to match for the given operation
-*  'replaceWith': type: string default: 'newAssetName'
+*  config item: 'replaceWith', type: 'string', default: 'newAssetName'
     A substitution string to replace the matched text with
-*  'enable': type: boolean default: 'false'
+*  config item: 'enable', type: 'boolean', default: 'false'
     Enable/Disable filter plugin
 
 Examples
 ========
 
-* A reading object
+* An input of reading object
 
 .. code-block:: console
 
     {"readings": {"sinusoid": -0.978147601, "a": {"sinusoid": "Blah"}}, "asset": "sinusoid", "id": "a1bedea3-8d80-47e8-b256-63370ccfce5b", "ts": "2021-06-28 14:03:22.106562+00:00", "user_ts": "2021-06-28 14:03:22.106435+00:00"}
 
 Set the configuration:
+----------------------
 
 a) Case1
 
