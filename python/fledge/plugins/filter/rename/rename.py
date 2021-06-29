@@ -4,7 +4,7 @@
 # See: http://fledge-iot.readthedocs.io
 # FLEDGE_END
 
-""" Plugin module that can be used to modify the name of asset, datapoint and both """
+""" Plugin module that can be used to modify the name of an asset, datapoint or both """
 
 import re
 import copy
@@ -27,13 +27,13 @@ the_ingest_ref = None
 
 _DEFAULT_CONFIG = {
     'plugin': {
-        'description': 'Filter that modify the name of asset, datapoint and both',
+        'description': 'Filter that modify the name of an asset, datapoint or both',
         'type': 'string',
         'default': PLUGIN_NAME,
         'readonly': 'true'
     },
     'operation': {
-        'description': 'Search and replace operation be performed on asset name, datapoint name and both',
+        'description': 'Search and replace operation be performed on asset name, datapoint name or both',
         'type': 'enumeration',
         'default': 'asset',
         'options': ['asset', 'datapoint', 'both'],
@@ -155,7 +155,7 @@ def plugin_ingest(handle, data):
 def find_and_replace(operation, find, replace_with, reading):
     """ Find and replace asset, datapoint and both with case sensitive
     Args:
-        operation:     Possible values are asset, datapoint and both
+        operation:     Possible values are asset, datapoint or both
         find:          A regular expression to match for the given operation
         replace_with:  A substitution string to replace the matched text with
         reading:       A reading object

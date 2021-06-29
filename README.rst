@@ -2,13 +2,13 @@
 fledge-filter-rename
 ======================
 
-It is a filter plugin for Fledge which can be used to modify the name of asset, datapoint and both.
+It is a filter plugin for Fledge which can be used to modify the name of an asset, datapoint or both.
 
 Configuration options
 ======================
 
 *  config item: 'operation', type: 'enumeration', default: 'asset'
-    Search and replace operation be performed on asset name, datapoint name and both
+    Search and replace operation be performed on asset name, datapoint name or both
 *  config item: 'find', type: 'string', default: 'assetName'
     A regular expression to match for the given operation
 *  config item: 'replaceWith', type: 'string', default: 'newAssetName'
