@@ -16,7 +16,6 @@ import filter_ingest
 __author__ = "Ashish Jabble"
 __copyright__ = "Copyright (c) 2021 Dianomic Systems Inc."
 __license__ = "Apache 2.0"
-__version__ = "${VERSION}"
 
 _LOGGER = logger.setup(__name__, level=logging.INFO)
 
@@ -149,7 +148,7 @@ def plugin_ingest(handle, data):
     # Pass data onwards
     filter_ingest.filter_ingest_callback(the_callback, the_ingest_ref, [processed_data])
 
-    _LOGGER.info("{} filter ingest done".format(PLUGIN_NAME))
+    _LOGGER.debug("{} filter ingest done".format(PLUGIN_NAME))
 
 
 def find_and_replace(operation, find, replace_with, reading):
@@ -178,6 +177,6 @@ def find_and_replace(operation, find, replace_with, reading):
         # convert string to dict
         new_dict = eval(both)
     else:
-        _LOGGER.warning("Unknown {} operation found.")
+        _LOGGER.warning("Unknown {} operation found, forwarding the readings as is".format(operation))
     _LOGGER.debug("New dictionary {} in case of {}: ".format(new_dict, operation))
     return new_dict
