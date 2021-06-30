@@ -153,7 +153,7 @@ def plugin_ingest(handle, data):
 
 
 def find_and_replace(operation, find, replace_with, reading):
-    """ Find and replace asset, datapoint and both with case sensitive
+    """ Find and replace asset, datapoint or both with case sensitive
     Args:
         operation:     Possible values are asset, datapoint or both
         find:          A regular expression to match for the given operation
@@ -163,16 +163,19 @@ def find_and_replace(operation, find, replace_with, reading):
         dict:          A processed dictionary
     """
     new_dict = reading.copy()
-    search_pattern = r'\b{}\b'.format(find)
+    search_pattern = r'{}'.format(find)
     _LOGGER.debug("search_pattern: {}".format(search_pattern))
+    # TODO: Regex IGNORECASE should be configurable
     if operation == 'asset':
         new_dict['asset'] = re.sub(search_pattern, replace_with, new_dict['asset'], flags=re.IGNORECASE)
     elif operation == 'datapoint':
         dp = re.sub(search_pattern, replace_with, str(new_dict['readings']), flags=re.IGNORECASE)
+        # convert string to dict
         new_dict['readings'] = eval(dp)
     elif operation == 'both':
         # Both asset and datapoint case
         both = re.sub(search_pattern, replace_with, str(reading), flags=re.IGNORECASE)
+        # convert string to dict
         new_dict = eval(both)
     else:
         _LOGGER.warning("Unknown {} operation found.")
