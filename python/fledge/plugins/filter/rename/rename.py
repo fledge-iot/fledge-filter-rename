@@ -162,7 +162,9 @@ def find_and_replace(operation, find, replace_with, reading):
         dict:          A processed dictionary
     """
     new_dict = reading.copy()
-    search_pattern = r'{}'.format(find)
+    # FIXME: remove boundary (match exact name) check
+    # TODO: search pattern should be from 'find' config item value as is
+    search_pattern = r'\b{}\b'.format(find)
     _LOGGER.debug("search_pattern: {}".format(search_pattern))
     # TODO: Regex IGNORECASE should be configurable
     if operation == 'asset':
