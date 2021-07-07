@@ -161,23 +161,31 @@ def find_and_replace(operation, find, replace_with, reading):
     Returns:
         dict:          A processed dictionary
     """
+    revised_reading_dict = {}
+
+    def get_all_values(nested_dictionary):
+        for key, value in nested_dictionary.items():
+            if type(value) is dict:
+                get_all_values(value)
+            _datapoint = re.sub(search_pattern, replace_with, str(key), flags=re.IGNORECASE)
+            revised_reading_dict[_datapoint] = value
+
+    _LOGGER.debug("reading {}".format(reading))
     new_dict = reading.copy()
-    # FIXME: remove boundary (match exact name) check
-    # TODO: search pattern should be from 'find' config item value as is
-    search_pattern = r'\b{}\b'.format(find)
+    search_pattern = r'{}'.format(find)
+    replace_with = r'{}'.format(replace_with)
     _LOGGER.debug("search_pattern: {}".format(search_pattern))
     # TODO: Regex IGNORECASE should be configurable
     if operation == 'asset':
         new_dict['asset'] = re.sub(search_pattern, replace_with, new_dict['asset'], flags=re.IGNORECASE)
     elif operation == 'datapoint':
-        dp = re.sub(search_pattern, replace_with, str(new_dict['readings']), flags=re.IGNORECASE)
-        # convert string to dict
-        new_dict['readings'] = eval(dp)
+        get_all_values(new_dict['readings'])
+        new_dict['readings'] = revised_reading_dict
     elif operation == 'both':
         # Both asset and datapoint case
-        both = re.sub(search_pattern, replace_with, str(reading), flags=re.IGNORECASE)
-        # convert string to dict
-        new_dict = eval(both)
+        new_dict['asset'] = re.sub(search_pattern, replace_with, new_dict['asset'], flags=re.IGNORECASE)
+        get_all_values(new_dict['readings'])
+        new_dict['readings'] = revised_reading_dict
     else:
         _LOGGER.warning("Unknown {} operation found, forwarding the readings as is".format(operation))
     _LOGGER.debug("New dictionary {} in case of {}: ".format(new_dict, operation))

@@ -121,3 +121,30 @@ Output
     }
 
 See the asset & readings datapoint 'sinusoid' is replaced with 'sin'
+
+d) Case4 - With regular expression, note that escaping do it by your own
+
+* 'Operation'   : 'both'
+* 'Find'        : '^(.+)$'
+* 'Replace With' : 'NEW.\\1'
+* 'Enabled'      : 'True'
+
+Output
+~~~~~~
+
+.. code-block:: JSON
+
+    {
+        "readings": {
+            "NEW.sinusoid": -0.978147601,
+            "a": {
+                "NEW.sinusoid": 2.0
+            }
+        },
+        "asset": "NEW.sinusoid",
+        "id": "a1bedea3-8d80-47e8-b256-63370ccfce5b",
+        "ts": "2021-06-28 14:03:22.106562+00:00",
+        "user_ts": "2021-06-28 14:03:22.106435+00:00"
+    }
+
+See the asset & readings datapoint 'sinusoid' is replaced with 'New.sinusoid'
