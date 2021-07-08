@@ -55,12 +55,19 @@ _DEFAULT_CONFIG = {
         'mandatory': 'true',
         'displayName': 'Replace With'
     },
+    'ignoreCase': {
+        'description': 'Case insensitive search',
+        'type': 'boolean',
+        'default': 'false',
+        'displayName': 'Ignore Case',
+        'order': "5"
+    },
     'enable': {
         'description': 'Enable/Disable filter plugin',
         'type': 'boolean',
         'default': 'false',
         'displayName': 'Enabled',
-        'order': "5"
+        'order': "6"
     }
 }
 
@@ -140,44 +147,54 @@ def plugin_ingest(handle, data):
         return
 
     # Filter is enabled: compute for each reading
-    processed_data = {}
+    processed_data = []
     for element in data:
-        processed_data = find_and_replace(handle['operation']['value'], handle['find']['value'],
-                                          handle['replaceWith']['value'], element)
-    _LOGGER.debug("processed data {}".format([processed_data]))
+        processed_data.append(find_and_replace(handle['operation']['value'], handle['find']['value'],
+                                               handle['replaceWith']['value'], handle['ignoreCase']['value'], element))
+    _LOGGER.debug("processed data {}".format(processed_data))
     # Pass data onwards
-    filter_ingest.filter_ingest_callback(the_callback, the_ingest_ref, [processed_data])
+    filter_ingest.filter_ingest_callback(the_callback, the_ingest_ref, processed_data)
 
     _LOGGER.debug("{} filter ingest done".format(PLUGIN_NAME))
 
 
-def find_and_replace(operation, find, replace_with, reading):
+def find_and_replace(operation, find, replace_with, ignore_case, reading):
     """ Find and replace asset, datapoint or both with case sensitive
     Args:
         operation:     Possible values are asset, datapoint or both
         find:          A regular expression to match for the given operation
         replace_with:  A substitution string to replace the matched text with
+        ignore_case:   A case insensitive search
         reading:       A reading object
     Returns:
         dict:          A processed dictionary
     """
+    revised_reading_dict = {}
+    _flag = re.IGNORECASE if ignore_case == 'false' else False
+
+    def get_all_values(nested_dictionary):
+        for key, value in nested_dictionary.items():
+            if type(value) is dict:
+                get_all_values(value)
+            _datapoint = re.sub(search_pattern, replace_with, str(key), flags=_flag)
+            revised_reading_dict[_datapoint] = value
+
+    _LOGGER.debug("reading {}".format(reading))
     new_dict = reading.copy()
-    # FIXME: remove boundary (match exact name) check
-    # TODO: search pattern should be from 'find' config item value as is
-    search_pattern = r'\b{}\b'.format(find)
+    search_pattern = r'{}'.format(find)
+    replace_with = r'{}'.format(replace_with)
     _LOGGER.debug("search_pattern: {}".format(search_pattern))
     # TODO: Regex IGNORECASE should be configurable
     if operation == 'asset':
-        new_dict['asset'] = re.sub(search_pattern, replace_with, new_dict['asset'], flags=re.IGNORECASE)
+        new_dict['asset'] = re.sub(search_pattern, replace_with, new_dict['asset'], flags=_flag)
     elif operation == 'datapoint':
-        dp = re.sub(search_pattern, replace_with, str(new_dict['readings']), flags=re.IGNORECASE)
-        # convert string to dict
-        new_dict['readings'] = eval(dp)
+        get_all_values(new_dict['readings'])
+        new_dict['readings'] = revised_reading_dict
     elif operation == 'both':
         # Both asset and datapoint case
-        both = re.sub(search_pattern, replace_with, str(reading), flags=re.IGNORECASE)
-        # convert string to dict
-        new_dict = eval(both)
+        new_dict['asset'] = re.sub(search_pattern, replace_with, new_dict['asset'], flags=_flag)
+        get_all_values(new_dict['readings'])
+        new_dict['readings'] = revised_reading_dict
     else:
         _LOGGER.warning("Unknown {} operation found, forwarding the readings as is".format(operation))
     _LOGGER.debug("New dictionary {} in case of {}: ".format(new_dict, operation))
