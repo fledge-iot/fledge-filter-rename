@@ -14,15 +14,12 @@ from fledge.common import logger
 import filter_ingest
 
 __author__ = "Ashish Jabble"
-__copyright__ = "Copyright (c) 2021 Dianomic Systems Inc."
+__copyright__ = "Copyright (c) 2022 Dianomic Systems Inc."
 __license__ = "Apache 2.0"
 
 _LOGGER = logger.setup(__name__, level=logging.INFO)
 
 PLUGIN_NAME = "rename"
-# Filter specific objects
-the_callback = None
-the_ingest_ref = None
 
 _DEFAULT_CONFIG = {
     'plugin': {
@@ -82,7 +79,7 @@ def plugin_info():
     return {
         'name': PLUGIN_NAME,
         'version': '1.9.2',
-        'mode': "none",
+        'mode': 'none',
         'type': 'filter',
         'interface': '1.0',
         'config': _DEFAULT_CONFIG
@@ -100,9 +97,8 @@ def plugin_init(config, ingest_ref, callback):
     Raises:
     """
     data = copy.deepcopy(config)
-    global the_callback, the_ingest_ref
-    the_callback = callback
-    the_ingest_ref = ingest_ref
+    data['callback'] = callback
+    data['ingestRef'] = ingest_ref
     return data
 
 
@@ -117,6 +113,8 @@ def plugin_reconfigure(handle, new_config):
     """
     _LOGGER.info("Old config {} \n new config {} for {} plugin ".format(handle, new_config, PLUGIN_NAME))
     new_handle = copy.deepcopy(new_config)
+    new_handle['callback'] = handle['callback']
+    new_handle['ingestRef'] = handle['ingestRef']
     return new_handle
 
 
@@ -127,9 +125,8 @@ def plugin_shutdown(handle):
         handle: handle returned by the plugin initialisation call
     Returns:
     """
-    global the_callback, the_ingest_ref
-    the_callback = None
-    the_ingest_ref = None
+    handle['callback'] = None
+    handle['ingestRef'] = None
     _LOGGER.info('{} filter plugin shutdown.'.format(PLUGIN_NAME))
 
 
@@ -140,10 +137,9 @@ def plugin_ingest(handle, data):
         handle: handle returned by the plugin initialisation call
         data:   readings data
     """
-    global the_callback, the_ingest_ref
     if handle['enable']['value'] == 'false':
         # Filter not enabled, just pass data onwards
-        filter_ingest.filter_ingest_callback(the_callback, the_ingest_ref, data)
+        filter_ingest.filter_ingest_callback(handle['callback'],  handle['ingestRef'], data)
         return
 
     # Filter is enabled: compute for each reading
@@ -153,18 +149,18 @@ def plugin_ingest(handle, data):
                                                handle['replaceWith']['value'], handle['ignoreCase']['value'], element))
     _LOGGER.debug("processed data {}".format(processed_data))
     # Pass data onwards
-    filter_ingest.filter_ingest_callback(the_callback, the_ingest_ref, processed_data)
+    filter_ingest.filter_ingest_callback(handle['callback'],  handle['ingestRef'], processed_data)
 
     _LOGGER.debug("{} filter ingest done".format(PLUGIN_NAME))
 
 
 def find_and_replace(operation, find, replace_with, ignore_case, reading):
-    """ Find and replace asset, datapoint or both with case sensitive
+    """ Find and replace asset, datapoint or both with case-sensitive
     Args:
         operation:     Possible values are asset, datapoint or both
         find:          A regular expression to match for the given operation
         replace_with:  A substitution string to replace the matched text with
-        ignore_case:   A case insensitive search
+        ignore_case:   A case-insensitive search
         reading:       A reading object
     Returns:
         dict:          A processed dictionary
