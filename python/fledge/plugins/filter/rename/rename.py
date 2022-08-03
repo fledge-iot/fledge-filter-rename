@@ -78,7 +78,7 @@ def plugin_info():
     """
     return {
         'name': PLUGIN_NAME,
-        'version': '1.9.2',
+        'version': '2.0.0',
         'mode': 'none',
         'type': 'filter',
         'interface': '1.0',
