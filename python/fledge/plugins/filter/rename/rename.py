@@ -168,12 +168,30 @@ def find_and_replace(operation, find, replace_with, ignore_case, reading):
     revised_reading_dict = {}
     _flag = re.IGNORECASE if ignore_case == 'false' else False
 
-    def get_all_values(nested_dictionary):
-        for key, value in nested_dictionary.items():
-            if type(value) is dict:
-                get_all_values(value)
-            _datapoint = re.sub(search_pattern, replace_with, str(key), flags=_flag)
-            revised_reading_dict[_datapoint] = value
+    def renameDataPoint(test_dict):
+        res = dict()
+        for key in test_dict.keys():
+            isKeyFound = False
+            # Check if key is found for case insensitive option
+            if _flag == False and key.upper() == search_pattern.upper():
+                isKeyFound = True
+
+            # Check if key is found for case sensitive option
+            if _flag == True and key == search_pattern:
+                isKeyFound = True
+
+            if type(test_dict[key]) is dict:
+
+                if isKeyFound == True:
+                    res[replace_with] = renameDataPoint(test_dict[key])
+                else:
+                    res[key] = renameDataPoint(test_dict[key])
+            else:
+                if isKeyFound == True:
+                    res[replace_with] = test_dict[key]
+                else:
+                    res[key] = test_dict[key]
+        return res
 
     _LOGGER.debug("reading {}".format(reading))
     new_dict = reading.copy()
@@ -184,13 +202,11 @@ def find_and_replace(operation, find, replace_with, ignore_case, reading):
     if operation == 'asset':
         new_dict['asset'] = re.sub(search_pattern, replace_with, new_dict['asset'], flags=_flag)
     elif operation == 'datapoint':
-        get_all_values(new_dict['readings'])
-        new_dict['readings'] = revised_reading_dict
+        new_dict['readings'] = renameDataPoint(new_dict['readings'])
     elif operation == 'both':
         # Both asset and datapoint case
         new_dict['asset'] = re.sub(search_pattern, replace_with, new_dict['asset'], flags=_flag)
-        get_all_values(new_dict['readings'])
-        new_dict['readings'] = revised_reading_dict
+        new_dict['readings'] = renameDataPoint(new_dict['readings'])
     else:
         _LOGGER.warning("Unknown {} operation found, forwarding the readings as is".format(operation))
     _LOGGER.debug("New dictionary {} in case of {}: ".format(new_dict, operation))
