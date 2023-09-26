@@ -181,12 +181,12 @@ def find_and_replace(operation, find, replace_with, ignore_case, reading):
                 is_key_found = True
 
             if isinstance(readings[key], dict):
-                if is_key_found == True:
+                if is_key_found:
                     res[replace_with] = rename_reading_attributes(readings[key])
                 else:
                     res[key] = rename_reading_attributes(readings[key])
             else:
-                if is_key_found == True:
+                if is_key_found:
                     res[replace_with] = readings[key]
                 else:
                     res[key] = readings[key]
