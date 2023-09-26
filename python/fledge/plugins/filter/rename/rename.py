@@ -199,12 +199,12 @@ def find_and_replace(operation, find, replace_with, ignore_case, reading):
     _LOGGER.debug("search_pattern: {}".format(search_pattern))
     # TODO: Regex IGNORECASE should be configurable
     if operation == 'asset':
-        new_dict['asset'] = re.sub(search_pattern, replace_with, new_dict['asset'], flags=_flag)
+        new_dict['asset'] = re.sub(search_pattern, replace_with, new_dict['asset'], flags=_ignore_case_flag)
     elif operation == 'datapoint':
         new_dict['readings'] = rename_reading_attributes(new_dict['readings'])
     elif operation == 'both':
         # Both asset and datapoint case
-        new_dict['asset'] = re.sub(search_pattern, replace_with, new_dict['asset'], flags=_flag)
+        new_dict['asset'] = re.sub(search_pattern, replace_with, new_dict['asset'], flags=_ignore_case_flag)
         new_dict['readings'] = rename_reading_attributes(new_dict['readings'])
     else:
         _LOGGER.warning("Unknown {} operation found, forwarding the readings as is".format(operation))
