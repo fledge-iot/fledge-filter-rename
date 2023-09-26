@@ -173,11 +173,11 @@ def find_and_replace(operation, find, replace_with, ignore_case, reading):
         for key in readings.keys():
             is_key_found = False
             # Check if key is found for case insensitive option
-            if not _ignore_case_flag and key.upper() == search_pattern.upper():
+            if not _ignore_case_flag and re.fullmatch(search_pattern, key, re.IGNORECASE) != None:
                 is_key_found = True
 
             # Check if key is found for case sensitive option
-            if _ignore_case_flag and key == search_pattern:
+            if _ignore_case_flag and re.fullmatch(search_pattern, key) != None:
                 is_key_found = True
 
             if isinstance(readings[key], dict):
