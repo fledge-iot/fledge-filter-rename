@@ -166,14 +166,31 @@ def find_and_replace(operation, find, replace_with, ignore_case, reading):
         dict:          A processed dictionary
     """
     revised_reading_dict = {}
-    _flag = re.IGNORECASE if ignore_case == 'false' else False
+    _ignore_case_flag = re.IGNORECASE if ignore_case == 'false' else False
 
-    def get_all_values(nested_dictionary):
-        for key, value in nested_dictionary.items():
-            if type(value) is dict:
-                get_all_values(value)
-            _datapoint = re.sub(search_pattern, replace_with, str(key), flags=_flag)
-            revised_reading_dict[_datapoint] = value
+    def rename_reading_attributes(readings):
+        res = dict()
+        for key in readings.keys():
+            is_key_found = False
+            # Check if key is found for case insensitive option
+            if not _ignore_case_flag and re.fullmatch(search_pattern, key, re.IGNORECASE):
+                is_key_found = True
+
+            # Check if key is found for case sensitive option
+            if _ignore_case_flag and re.fullmatch(search_pattern, key):
+                is_key_found = True
+
+            if isinstance(readings[key], dict):
+                if is_key_found:
+                    res[replace_with] = rename_reading_attributes(readings[key])
+                else:
+                    res[key] = rename_reading_attributes(readings[key])
+            else:
+                if is_key_found:
+                    res[replace_with] = readings[key]
+                else:
+                    res[key] = readings[key]
+        return res
 
     _LOGGER.debug("reading {}".format(reading))
     new_dict = reading.copy()
@@ -182,15 +199,13 @@ def find_and_replace(operation, find, replace_with, ignore_case, reading):
     _LOGGER.debug("search_pattern: {}".format(search_pattern))
     # TODO: Regex IGNORECASE should be configurable
     if operation == 'asset':
-        new_dict['asset'] = re.sub(search_pattern, replace_with, new_dict['asset'], flags=_flag)
+        new_dict['asset'] = re.sub(search_pattern, replace_with, new_dict['asset'], flags=_ignore_case_flag)
     elif operation == 'datapoint':
-        get_all_values(new_dict['readings'])
-        new_dict['readings'] = revised_reading_dict
+        new_dict['readings'] = rename_reading_attributes(new_dict['readings'])
     elif operation == 'both':
         # Both asset and datapoint case
-        new_dict['asset'] = re.sub(search_pattern, replace_with, new_dict['asset'], flags=_flag)
-        get_all_values(new_dict['readings'])
-        new_dict['readings'] = revised_reading_dict
+        new_dict['asset'] = re.sub(search_pattern, replace_with, new_dict['asset'], flags=_ignore_case_flag)
+        new_dict['readings'] = rename_reading_attributes(new_dict['readings'])
     else:
         _LOGGER.warning("Unknown {} operation found, forwarding the readings as is".format(operation))
     _LOGGER.debug("New dictionary {} in case of {}: ".format(new_dict, operation))
