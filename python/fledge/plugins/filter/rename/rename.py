@@ -167,6 +167,9 @@ def find_and_replace(operation, find, replace_with, ignore_case, reading):
     """
     revised_reading_dict = {}
     _ignore_case_flag = re.IGNORECASE if ignore_case == 'false' else False
+    
+    if "\\" in replace_with:
+        replace_with=replace_with.replace("\\","\\\\")
 
     def rename_reading_attributes(readings):
         res = dict()
